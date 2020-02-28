@@ -11,7 +11,7 @@ namespace gridGenerationTesting
     public class GridGenerator
     {
         public int[,] tiles;
-        private int tileSize = 25;
+        private int tileSize = 30;
         Random rnd;
         LinkedList list;
         int mapWidth;
@@ -106,6 +106,7 @@ namespace gridGenerationTesting
 
             //2: find random path between the two
             List<Vector2> pathValues = list.generatePath(GetCorner(startTile), GetCorner(endTile), tiles);
+            pathValues.Add(GetCorner(endTile));
 
             for(int i = 0; i < pathValues.Count-1; i++)
             {
@@ -123,7 +124,7 @@ namespace gridGenerationTesting
                     }
                     else if (pathValues[i + 1].Y < pathValues[i].Y) {
                         direction1 = Room.Direction.UP;
-                        direction1 = Room.Direction.DOWN;
+                        direction2 = Room.Direction.DOWN;
                     }
                     rooms.Add(new Room(pathValues[i], direction1));
                     rooms.Add(new Room(pathValues[i + 1], direction2));
@@ -153,7 +154,7 @@ namespace gridGenerationTesting
                     else if (pathValues[i + 1].Y < pathValues[i].Y)
                     {
                         direction1 = Room.Direction.UP;
-                        direction1 = Room.Direction.DOWN;
+                        direction2 = Room.Direction.DOWN;
                     }
                     rooms[i].AddDirection(direction1);
                     rooms.Add(new Room(pathValues[i + 1], direction2));
@@ -366,7 +367,7 @@ namespace gridGenerationTesting
 
             public void Draw(SpriteBatch spriteBatch)
             {
-                spriteBatch.Draw(texture, new Rectangle((int)position.X * 25, (int)position.Y * 25, 25, 25), null, Color.White, textureRotation, new Vector2(0, 0), SpriteEffects.None, 1.0f); 
+                spriteBatch.Draw(texture, new Rectangle(((int)position.X * 30)+15, ((int)position.Y * 30)+15, 30, 30), null, Color.White, textureRotation, new Vector2(texture.Width/2,texture.Height/2), SpriteEffects.None, 1.0f); 
             }
         }
     }        
