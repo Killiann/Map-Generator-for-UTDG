@@ -77,13 +77,13 @@ namespace gridGenerationTesting
 
             tiles[(int)GetCorner(startTile).X, (int)GetCorner(startTile).Y] = (int)TileType.start;
             tiles[(int)GetCorner(endTile).X, (int)GetCorner(endTile).Y] = (int)TileType.end;
-            
+
             //item tiles
-            for(int i = 0; i < 2; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var xpos = rnd.Next(tiles.GetLength(0));
                 var ypos = rnd.Next(tiles.GetLength(1));
-                while(tiles[xpos, ypos] != 0)                    
+                while (tiles[xpos, ypos] != 0)
                 {
                     xpos = rnd.Next(tiles.GetLength(0));
                     ypos = rnd.Next(tiles.GetLength(1));
@@ -108,7 +108,14 @@ namespace gridGenerationTesting
             List<Vector2> pathValues = list.generatePath(GetCorner(startTile), GetCorner(endTile), tiles);
             pathValues.Add(GetCorner(endTile));
 
-            for(int i = 0; i < pathValues.Count-1; i++)
+            int[,] pathPlaces = new int[mapWidth, mapHeight];
+            for (int i = 0; i < pathValues.Count; i++)
+            {
+                pathPlaces[(int)pathValues[i].X, (int)pathValues[i].Y] = 1;
+            }
+
+
+            for (int i = 0; i < pathValues.Count - 1; i++)
             {
                 if (i == 0)
                 {
@@ -129,14 +136,6 @@ namespace gridGenerationTesting
                     rooms.Add(new Room(pathValues[i], direction1));
                     rooms.Add(new Room(pathValues[i + 1], direction2));
                 }
-                //else if (i == pathValues.Count - 1)
-                //{//end room
-                //    Room.Direction direction = Room.Direction.DOWN;
-                //    if (pathValues[i - 1].X > pathValues[i].X) direction = Room.Direction.RIGHT;
-                //    else if (pathValues[i - 1].X < pathValues[i].X) direction = Room.Direction.LEFT;
-                //    else if (pathValues[i - 1].Y < pathValues[i].Y) direction = Room.Direction.UP;
-                //    rooms.Add(new Room(pathValues[i], direction));
-                //}
                 else
                 {
                     Room.Direction direction1 = Room.Direction.DOWN;
@@ -160,6 +159,70 @@ namespace gridGenerationTesting
                     rooms.Add(new Room(pathValues[i + 1], direction2));
                 }
             }
+
+            while (rooms.Count < (mapWidth * mapHeight))
+            {
+                for (int r = 0; r < rooms.Count; r++) {
+                    Room room = rooms[r];
+                    if (room.position.X > 0 && room.position.Y > 0 && room.position.X < mapWidth - 1 && room.position.Y < mapHeight - 1)
+                    {
+                        List<Room.Direction> availableDirections = new List<Room.Direction>();
+                        if (pathPlaces[(int)room.position.X - 1, (int)room.position.Y] == 0)
+                            availableDirections.Add(Room.Direction.LEFT);
+                        else if (pathPlaces[(int)room.position.X + 1, (int)room.position.Y] == 0)
+                            availableDirections.Add(Room.Direction.RIGHT);
+                        else if (pathPlaces[(int)room.position.X, (int)room.position.Y - 1] == 0)
+                            availableDirections.Add(Room.Direction.UP);
+                        else if (pathPlaces[(int)room.position.X, (int)room.position.Y + 1] == 0)
+                            availableDirections.Add(Room.Direction.DOWN);
+
+                        Room.Direction direction = (Room.Direction)rnd.Next(availableDirections.Count);
+                        Vector2 newPosition = room.position;
+                        if (direction == Room.Direction.DOWN) newPosition.Y += 1;
+                        if (direction == Room.Direction.UP) newPosition.Y -= 1;
+                        if (direction == Room.Direction.RIGHT) newPosition.X += 1;
+                        if (direction == Room.Direction.LEFT) newPosition.Y -= 1;
+
+                        rooms.Add(new Room(newPosition, direction));
+                        pathPlaces[(int)newPosition.X, (int)newPosition.Y] = 1;
+                    }
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    if (pathPlaces[(int)GetCorner(i).X, (int)GetCorner(i).Y] == 0)
+                    {
+                        if (GetCorner(i).X == 0)
+                        {
+                            if (GetCorner(i).Y == 0)
+                            {
+                                int d = rnd.Next(2);
+                                if (d == 0) rooms.Add(new Room(GetCorner(i), Room.Direction.RIGHT));
+                                else if (d == 1) rooms.Add(new Room(GetCorner(i), Room.Direction.DOWN));
+                            }
+                            else
+                            {
+                                int d = rnd.Next(2);
+                                if (d == 0) rooms.Add(new Room(GetCorner(i), Room.Direction.RIGHT));
+                                else if (d == 1) rooms.Add(new Room(GetCorner(i), Room.Direction.UP));
+                            }
+                        } else
+                        {
+                            if (GetCorner(i).Y == 0)
+                            {
+                                int d = rnd.Next(2);
+                                if (d == 0) rooms.Add(new Room(GetCorner(i), Room.Direction.LEFT));
+                                else if (d == 1) rooms.Add(new Room(GetCorner(i), Room.Direction.DOWN));
+                            }
+                            else
+                            {
+                                int d = rnd.Next(2);
+                                if (d == 0) rooms.Add(new Room(GetCorner(i), Room.Direction.LEFT));
+                                else if (d == 1) rooms.Add(new Room(GetCorner(i), Room.Direction.UP));
+                            }
+                        }
+                    }
+                }
+            }        
 
             for(int i = 0; i < rooms.Count(); i++)
             {
@@ -189,9 +252,23 @@ namespace gridGenerationTesting
                         rooms[i].SetTexture(room2Texturet2, (float)Math.PI/2);
                     else if (rooms[i].directions.Contains(Room.Direction.UP) && rooms[i].directions.Contains(Room.Direction.DOWN))
                         rooms[i].SetTexture(room2Texturet2, 0f);
+                }else if(rooms[i].directions.Count == 3)
+                {
+                    if (rooms[i].directions.Contains(Room.Direction.DOWN) && rooms[i].directions.Contains(Room.Direction.RIGHT) && rooms[i].directions.Contains(Room.Direction.UP))
+                        rooms[i].SetTexture(room3Texture, 0f);
+                    else if (rooms[i].directions.Contains(Room.Direction.DOWN) && rooms[i].directions.Contains(Room.Direction.LEFT) && rooms[i].directions.Contains(Room.Direction.RIGHT))
+                        rooms[i].SetTexture(room3Texture, (float)Math.PI / 2);
+                    else if (rooms[i].directions.Contains(Room.Direction.LEFT) && rooms[i].directions.Contains(Room.Direction.UP) && rooms[i].directions.Contains(Room.Direction.DOWN))
+                        rooms[i].SetTexture(room3Texture, (float)Math.PI);
+                    else if (rooms[i].directions.Contains(Room.Direction.UP) && rooms[i].directions.Contains(Room.Direction.RIGHT) && rooms[i].directions.Contains(Room.Direction.LEFT))
+                        rooms[i].SetTexture(room3Texture, -(float)Math.PI / 2);
                 }
-            }
-        }
+                else if(rooms[i].directions.Count == 4)
+                {
+                    rooms[i].SetTexture(room4Texture, 0f);
+                }
+            }            
+        }        
 
         private Vector2 GetCorner(int cornerNum)
         {            
@@ -249,7 +326,7 @@ namespace gridGenerationTesting
             {
                 this.mapW = mapW;
                 this.mapH = mapH;
-            }
+            }            
 
             public List<Vector2> generatePath(Vector2 startPosition, Vector2 endPosition, int[,] takenPositions)
             {
@@ -333,7 +410,7 @@ namespace gridGenerationTesting
 
         private class Room
         {
-            private Vector2 position;
+            public Vector2 position;
             private Texture2D texture;
             private float textureRotation;
 
