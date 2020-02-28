@@ -1,0 +1,4 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"C:/Users/k.comerford/source/repos/gridGenerationTesting/gridGenerationTesting/Content/tiles/gun.png","C:/Users/k.comerford/source/repos/gridGenerationTesting/gridGenerationTesting/Content/bin/Windows/tiles/pathTile.xnb","TextureProcessor","Texture2DContent",208,16469,0.1669311
+"C:/Users/k.comerford/source/repos/gridGenerationTesting/gridGenerationTesting/Content/tiles/no_image.png","C:/Users/k.comerford/source/repos/gridGenerationTesting/gridGenerationTesting/Content/bin/Windows/tiles/endTile.xnb","TextureProcessor","Texture2DContent",201,16469,0.0069764
+"C:/Users/k.comerford/source/repos/gridGenerationTesting/gridGenerationTesting/Content/tiles/Sword.png","C:/Users/k.comerford/source/repos/gridGenerationTesting/gridGenerationTesting/Content/bin/Windows/tiles/startTile.xnb","TextureProcessor","Texture2DContent",208,16469,0.0069944
