@@ -10,25 +10,18 @@ namespace Map_Generator
 {
     public class GridGenerator
     {
-        public int[,] tiles;
-        private int tileSize = 40;
-        Random rnd;
-        LinkedList list;
-        int mapWidth;
-        int mapHeight;
+        private readonly int tileSize = 60;
+        private readonly int bossTileCount = 3;
+        private readonly int itemTileCount = 2;
+        private readonly int mapWidth = 5;
+        private readonly int mapHeight = 5;
 
+        private readonly Random rnd;
+        private readonly LinkedList list;
+
+        public int[,] tiles;
         List<Room> rooms;
 
-        public enum TileType
-        {
-            none,
-            start,
-            end,
-            item,
-            path,
-            boss,
-            normal
-        }
         private Texture2D startTile;
         private Texture2D endTile;
         private Texture2D bossTile;
@@ -40,11 +33,18 @@ namespace Map_Generator
         private Texture2D room3Texture;
         private Texture2D room4Texture;
 
+        public enum TileType
+        {
+            def,
+            start,
+            end,
+            item,
+            boss,
+        }
+
         public GridGenerator()
         {
             rnd = new Random();
-            mapWidth = 5;
-            mapHeight = 5;
             list = new LinkedList(mapWidth, mapHeight);
             rooms = new List<Room>();
         }
@@ -56,7 +56,6 @@ namespace Map_Generator
             defaultTile = game.Content.Load<Texture2D>("tiles/sword");
             itemTile = game.Content.Load<Texture2D>("tiles/itemDisplayBG");
             bossTile = game.Content.Load<Texture2D>("tiles/speed");
-
             room1Texture = game.Content.Load<Texture2D>("rooms/room_1open");
             room2Texture = game.Content.Load<Texture2D>("rooms/room_2open");
             room2Texturet2 = game.Content.Load<Texture2D>("rooms/room_2openv2");
@@ -79,33 +78,15 @@ namespace Map_Generator
             tiles[(int)GetCorner(endTile).X, (int)GetCorner(endTile).Y] = (int)TileType.end;
 
             //item tiles
-            for (int i = 0; i < 2; i++)
-            {
-                var xpos = rnd.Next(tiles.GetLength(0));
-                var ypos = rnd.Next(tiles.GetLength(1));
-                while (tiles[xpos, ypos] != 0)
-                {
-                    xpos = rnd.Next(tiles.GetLength(0));
-                    ypos = rnd.Next(tiles.GetLength(1));
-                }
-                tiles[xpos, ypos] = (int)TileType.item;
-            }
+            for (int i = 0; i < itemTileCount; i++)
+                PlaceTileAtRandom(TileType.item);
 
             //boss tiles
-            for (int i = 0; i < 3; i++)
-            {
-                var xpos = rnd.Next(tiles.GetLength(0));
-                var ypos = rnd.Next(tiles.GetLength(1));
-                while (tiles[xpos, ypos] != 0)
-                {
-                    xpos = rnd.Next(tiles.GetLength(0));
-                    ypos = rnd.Next(tiles.GetLength(1));
-                }
-                tiles[xpos, ypos] = (int)TileType.boss;
-            }
+            for (int i = 0; i < bossTileCount; i++)
+                PlaceTileAtRandom(TileType.boss);
 
-            //2: find random path between the two
-            List<Vector2> pathValues = list.generatePath(GetCorner(startTile), GetCorner(endTile), tiles);
+            //find random path between start/finish
+            List<Vector2> pathValues = list.GeneratePath(GetCorner(startTile), GetCorner(endTile));
             pathValues.Add(GetCorner(endTile));
 
             int[,] pathPlaces = new int[mapWidth, mapHeight];
@@ -117,54 +98,23 @@ namespace Map_Generator
             //turn path values into rooms
             for (int i = 0; i < pathValues.Count - 1; i++)
             {
-                if (i == 0)
-                {
-                    Room.Direction direction1 = Room.Direction.DOWN;
-                    Room.Direction direction2 = Room.Direction.UP;
-                    if (pathValues[i + 1].X > pathValues[i].X) {
-                        direction1 = Room.Direction.RIGHT;
-                        direction2 = Room.Direction.LEFT;
-                    }
-                    else if (pathValues[i + 1].X < pathValues[i].X) {
-                        direction1 = Room.Direction.LEFT;
-                        direction2 = Room.Direction.RIGHT;
-                    }
-                    else if (pathValues[i + 1].Y < pathValues[i].Y) {
-                        direction1 = Room.Direction.UP;
-                        direction2 = Room.Direction.DOWN;
-                    }
-                    rooms.Add(new Room(pathValues[i], direction1));
-                    rooms.Add(new Room(pathValues[i + 1], direction2));
-                }
-                else
-                {
-                    Room.Direction direction1 = Room.Direction.DOWN;
-                    Room.Direction direction2 = Room.Direction.UP;
-                    if (pathValues[i + 1].X > pathValues[i].X)
-                    {
-                        direction1 = Room.Direction.RIGHT;
-                        direction2 = Room.Direction.LEFT;
-                    }
-                    else if (pathValues[i + 1].X < pathValues[i].X)
-                    {
-                        direction1 = Room.Direction.LEFT;
-                        direction2 = Room.Direction.RIGHT;
-                    }
-                    else if (pathValues[i + 1].Y < pathValues[i].Y)
-                    {
-                        direction1 = Room.Direction.UP;
-                        direction2 = Room.Direction.DOWN;
-                    }
-                    rooms[i].AddDirection(direction1);
-                    rooms.Add(new Room(pathValues[i + 1], direction2));
-                }
+                Room.Direction direction1 = Room.Direction.DOWN;
+
+                if (pathValues[i + 1].X > pathValues[i].X) direction1 = Room.Direction.RIGHT;
+                else if (pathValues[i + 1].X < pathValues[i].X) direction1 = Room.Direction.LEFT;
+                else if (pathValues[i + 1].Y < pathValues[i].Y) direction1 = Room.Direction.UP;
+
+                if (i == 0) rooms.Add(new Room(pathValues[i], direction1));
+                else rooms[i].AddDirection(direction1);
+
+                rooms.Add(new Room(pathValues[i + 1], GetOpposite(direction1)));
             }
 
             //link up remaining rooms
-            while(rooms.Count < (mapWidth * mapHeight))
+            while (rooms.Count < (mapWidth * mapHeight))
             {
                 int roomCount = rooms.Count;
-                for(int i=0;i < roomCount; i++)
+                for (int i = 0; i < roomCount; i++)
                 {
                     Room room = rooms[i];
                     List<Room.Direction> availableDirections = new List<Room.Direction>();
@@ -188,7 +138,7 @@ namespace Map_Generator
                                 availableDirections.Add(Room.Direction.RIGHT);
                             if (room.position.Y == 0)
                             {
-                                if (pathPlaces[(int)room.position.X , (int)room.position.Y+1] == 0)
+                                if (pathPlaces[(int)room.position.X, (int)room.position.Y + 1] == 0)
                                     availableDirections.Add(Room.Direction.DOWN);
                             }
                             else if (room.position.Y == mapHeight - 1)
@@ -204,7 +154,7 @@ namespace Map_Generator
                                     availableDirections.Add(Room.Direction.DOWN);
                             }
                         }
-                        else if (room.position.X == mapWidth-1)
+                        else if (room.position.X == mapWidth - 1)
                         {
                             if (pathPlaces[(int)room.position.X - 1, (int)room.position.Y] == 0)
                                 availableDirections.Add(Room.Direction.LEFT);
@@ -231,79 +181,47 @@ namespace Map_Generator
                     if (availableDirections.Count > 0)
                     {
                         Room.Direction direction = availableDirections[rnd.Next(availableDirections.Count)];
-                        Room.Direction oppositeDirection = Room.Direction.RIGHT;
                         Vector2 newPosition = room.position;
-                        if (direction == Room.Direction.DOWN)
-                        {
-                            newPosition.Y += 1;
-                            oppositeDirection = Room.Direction.UP;
-                        }
-                        else if (direction == Room.Direction.UP)
-                        {
-                            newPosition.Y -= 1;
-                            oppositeDirection = Room.Direction.DOWN;
-                        }
-                        else if (direction == Room.Direction.RIGHT)
-                        {
-                            newPosition.X += 1;
-                            oppositeDirection = Room.Direction.LEFT;
-                        }
+                        if (direction == Room.Direction.DOWN) newPosition.Y += 1;
+                        else if (direction == Room.Direction.UP) newPosition.Y -= 1;
+                        else if (direction == Room.Direction.RIGHT) newPosition.X += 1;
                         else if (direction == Room.Direction.LEFT) newPosition.X -= 1;
 
                         room.AddDirection(direction);
-                        rooms.Add(new Room(newPosition, oppositeDirection));
+                        rooms.Add(new Room(newPosition, GetOpposite(direction)));
                         pathPlaces[(int)newPosition.X, (int)newPosition.Y] = 1;
                     }
                 }
-            }        
+            }
 
-
-            //set type of room depending on directions + add correct texture
+            //add correct texture
             for (int i = 0; i < rooms.Count(); i++)
-            { 
-                if(rooms[i].directions.Count == 1)
+            {
+                switch (rooms[i].directions.Count)
                 {
-                    if (rooms[i].directions[0] == Room.Direction.DOWN)
-                        rooms[i].SetTexture(room1Texture, 0f);
-                    else if (rooms[i].directions[0] == Room.Direction.LEFT)
-                        rooms[i].SetTexture(room1Texture, (float)Math.PI / 2);
-                    else if (rooms[i].directions[0] == Room.Direction.UP)
-                        rooms[i].SetTexture(room1Texture, (float)Math.PI);
-                    else if (rooms[i].directions[0] == Room.Direction.RIGHT)
-                        rooms[i].SetTexture(room1Texture, -(float)Math.PI / 2);
+                    case 1: rooms[i].SetTexture(room1Texture); break;
+                    case 2:
+                        if (rooms[i].GetRoomType() == Room.RoomType.HALL_HORIZONTAL || rooms[i].GetRoomType() == Room.RoomType.HALL_VETICAL)
+                            rooms[i].SetTexture(room2Texturet2);
+                        else rooms[i].SetTexture(room2Texture);
+                        break;
+                    case 3: rooms[i].SetTexture(room3Texture); break;
+                    case 4: rooms[i].SetTexture(room4Texture); break;
                 }
-                else if(rooms[i].directions.Count == 2)
-                {
-                    if (rooms[i].directions.Contains(Room.Direction.DOWN) && rooms[i].directions.Contains(Room.Direction.RIGHT))
-                        rooms[i].SetTexture(room2Texture, 0f);
-                    else if (rooms[i].directions.Contains(Room.Direction.DOWN) && rooms[i].directions.Contains(Room.Direction.LEFT))
-                        rooms[i].SetTexture(room2Texture, (float)Math.PI / 2);
-                    else if (rooms[i].directions.Contains(Room.Direction.LEFT) && rooms[i].directions.Contains(Room.Direction.UP))
-                        rooms[i].SetTexture(room2Texture, (float)Math.PI);
-                    else  if (rooms[i].directions.Contains(Room.Direction.UP) && rooms[i].directions.Contains(Room.Direction.RIGHT))
-                        rooms[i].SetTexture(room2Texture, -(float)Math.PI / 2);
+            }
+        }
 
-                    else if (rooms[i].directions.Contains(Room.Direction.LEFT) && rooms[i].directions.Contains(Room.Direction.RIGHT))
-                        rooms[i].SetTexture(room2Texturet2, (float)Math.PI/2);
-                    else if (rooms[i].directions.Contains(Room.Direction.UP) && rooms[i].directions.Contains(Room.Direction.DOWN))
-                        rooms[i].SetTexture(room2Texturet2, 0f);
-                }else if(rooms[i].directions.Count == 3)
-                {
-                    if (rooms[i].directions.Contains(Room.Direction.DOWN) && rooms[i].directions.Contains(Room.Direction.RIGHT) && rooms[i].directions.Contains(Room.Direction.UP))
-                        rooms[i].SetTexture(room3Texture, 0f);
-                    else if (rooms[i].directions.Contains(Room.Direction.DOWN) && rooms[i].directions.Contains(Room.Direction.LEFT) && rooms[i].directions.Contains(Room.Direction.RIGHT))
-                        rooms[i].SetTexture(room3Texture, (float)Math.PI / 2);
-                    else if (rooms[i].directions.Contains(Room.Direction.LEFT) && rooms[i].directions.Contains(Room.Direction.UP) && rooms[i].directions.Contains(Room.Direction.DOWN))
-                        rooms[i].SetTexture(room3Texture, (float)Math.PI);
-                    else if (rooms[i].directions.Contains(Room.Direction.UP) && rooms[i].directions.Contains(Room.Direction.RIGHT) && rooms[i].directions.Contains(Room.Direction.LEFT))
-                        rooms[i].SetTexture(room3Texture, -(float)Math.PI / 2);
-                }
-                else if(rooms[i].directions.Count == 4)
-                {
-                    rooms[i].SetTexture(room4Texture, 0f);
-                }
-            }            
-        }        
+        private void PlaceTileAtRandom(TileType tile)
+        {
+            var xpos = rnd.Next(tiles.GetLength(0));
+            var ypos = rnd.Next(tiles.GetLength(1));
+            while (tiles[xpos, ypos] != 0)
+            {
+                xpos = rnd.Next(tiles.GetLength(0));
+                ypos = rnd.Next(tiles.GetLength(1));
+            }
+            tiles[xpos, ypos] = (int)tile;
+        }
 
         private Vector2 GetCorner(int cornerNum)
         {
@@ -325,36 +243,41 @@ namespace Map_Generator
                 {
                     switch (tiles[x, y]) {
                         case (int)TileType.start:
-                            spriteBatch.Draw(startTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
-                            break;
+                            spriteBatch.Draw(startTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);break;
                         case (int)TileType.end:
-                            spriteBatch.Draw(endTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
-                            break;
+                            spriteBatch.Draw(endTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);break;
                         case (int)TileType.boss:
-                            spriteBatch.Draw(bossTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
-                            break;
+                            spriteBatch.Draw(bossTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);break;
                         case (int)TileType.item:
-                            spriteBatch.Draw(itemTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
-                            break;
+                            spriteBatch.Draw(itemTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);break;
                         default:
-                            spriteBatch.Draw(defaultTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);
-                            break;
+                            spriteBatch.Draw(defaultTile, new Rectangle(x * tileSize, y * tileSize, tileSize, tileSize), Color.White);break;
                     }
                 }
             }
 
             for(int i = 0; i < rooms.Count; i++)
             {
-                rooms[i].Draw(spriteBatch);
+                rooms[i].Draw(spriteBatch, tileSize);
             }
         }
 
+        private Room.Direction GetOpposite(Room.Direction direction)
+        {
+            return direction switch
+            {
+                Room.Direction.RIGHT => Room.Direction.LEFT,
+                Room.Direction.UP => Room.Direction.DOWN,
+                Room.Direction.LEFT => Room.Direction.RIGHT,
+                _ => Room.Direction.UP,
+            };
+        }
 
         private class LinkedList
         {
-            Node head;
-            int[,] visited;
-            int mapW, mapH;
+            private Node head;
+            private int[,] visited;
+            private readonly int mapW, mapH;
 
             public LinkedList(int mapW, int mapH)
             {
@@ -362,9 +285,8 @@ namespace Map_Generator
                 this.mapH = mapH;
             }            
 
-            public List<Vector2> generatePath(Vector2 startPosition, Vector2 endPosition, int[,] takenPositions)
+            public List<Vector2> GeneratePath(Vector2 startPosition, Vector2 endPosition)
             {
-                //setup
                 visited = new int[mapW, mapH];
                 head = new Node(startPosition, null);
 
@@ -376,7 +298,6 @@ namespace Map_Generator
                 while (nextPosition != endPosition)
                 {                    
                     List<Vector2> availablePositions = new List<Vector2>();
-                    //check available         
                     //left
                     if (currentNode.position.X != 0 && visited[(int)currentNode.position.X - 1, (int)currentNode.position.Y] == 0)
                         availablePositions.Add(new Vector2(currentNode.position.X - 1, currentNode.position.Y));
@@ -395,7 +316,6 @@ namespace Map_Generator
                     if (availablePositions.Count > 0)
                     {
                         nextPosition = availablePositions[rnd.Next(availablePositions.Count)];
-
                         if (nextPosition != endPosition)
                         {
                             currentNode.next = new Node(nextPosition, currentNode);
@@ -404,6 +324,7 @@ namespace Map_Generator
                         }
                         else
                         {
+                            //path found + return
                             currentNode.next = new Node(nextPosition, currentNode);
                             currentNode = head;
                             List<Vector2> pathPositions = new List<Vector2>();
@@ -416,7 +337,7 @@ namespace Map_Generator
                         }
                     }
                     else
-                    {
+                    {//reset when hitting dead end
                         head = new Node(startPosition, null);
                         currentNode = head;
                         returnedFrom = currentNode.position;
@@ -428,7 +349,6 @@ namespace Map_Generator
             }
         }
 
-        //node class for linked list
         private class Node
         {
             public Vector2 position;
@@ -441,12 +361,17 @@ namespace Map_Generator
             }
         }
 
-        //room class for drawing correct textures to grid, store directions
         private class Room
         {
             public Vector2 position;
+            public List<Direction> directions;
+
             private Texture2D texture;
             private float textureRotation;
+            private RoomType roomType;
+
+            public RoomType GetRoomType() { return roomType; }
+            public void SetTexture(Texture2D newTexture) { texture = newTexture; }
 
             public enum Direction
             {
@@ -456,29 +381,70 @@ namespace Map_Generator
                 LEFT
             }
 
-            public List<Direction> directions;
+            public enum RoomType
+            {
+                UP,
+                DOWN,
+                RIGHT,
+                LEFT,
+                UP_RIGHT,
+                RIGHT_DOWN,
+                DOWN_LEFT,
+                LEFT_UP,
+                UP_RIGHT_DOWN,
+                RIGHT_DOWN_LEFT,
+                DOWN_LEFT_UP,
+                LEFT_UP_RIGHT,
+                HALL_HORIZONTAL,
+                HALL_VETICAL,
+                ALL
+            }
 
             public Room(Vector2 position, Direction direction)
             {
                 directions = new List<Direction>();
                 this.position = position;
                 directions.Add(direction);
+                ResetType();
             }
 
-            public void SetTexture(Texture2D newTexture, float rotation)
+            private void ResetType()
             {
-                texture = newTexture;
-                textureRotation = rotation;
+                if (directions.Count == 1)
+                {
+                    if (directions[0] == Direction.DOWN) { textureRotation = 0f; roomType = RoomType.DOWN; }
+                    if (directions[0] == Direction.LEFT) { textureRotation = (float)Math.PI / 2; roomType = RoomType.LEFT; }
+                    if (directions[0] == Direction.UP) { textureRotation = (float)Math.PI; ; roomType = RoomType.UP; }
+                    if (directions[0] == Direction.RIGHT) { textureRotation = -(float)Math.PI / 2; ; roomType = RoomType.RIGHT; }
+                }
+                else if (directions.Count == 2)
+                {
+                    if (directions.Contains(Direction.DOWN) && directions.Contains(Direction.RIGHT)) { textureRotation = 0f; roomType = RoomType.RIGHT_DOWN; }
+                    else if (directions.Contains(Direction.DOWN) && directions.Contains(Direction.LEFT)) { textureRotation = (float)Math.PI / 2; roomType = RoomType.DOWN_LEFT; }
+                    else if (directions.Contains(Direction.LEFT) && directions.Contains(Direction.UP)) { textureRotation = (float)Math.PI; roomType = RoomType.LEFT_UP; }
+                    else if (directions.Contains(Direction.UP) && directions.Contains(Direction.RIGHT)) { textureRotation = -(float)Math.PI / 2; roomType = RoomType.UP_RIGHT; }
+                    else if (directions.Contains(Direction.LEFT) && directions.Contains(Direction.RIGHT)) { textureRotation = (float)Math.PI / 2; roomType = RoomType.HALL_HORIZONTAL; }
+                    else if (directions.Contains(Direction.UP) && directions.Contains(Direction.DOWN)) { textureRotation = 0f; roomType = RoomType.HALL_VETICAL; }
+                }
+                else if (directions.Count == 3)
+                {
+                    if (directions.Contains(Direction.DOWN) && directions.Contains(Direction.RIGHT) && directions.Contains(Direction.UP)) { textureRotation = 0f; roomType = RoomType.UP_RIGHT_DOWN; }
+                    else if (directions.Contains(Direction.DOWN) && directions.Contains(Direction.LEFT) && directions.Contains(Direction.RIGHT)) { textureRotation = (float)Math.PI / 2; roomType = RoomType.RIGHT_DOWN_LEFT; }
+                    else if (directions.Contains(Direction.LEFT) && directions.Contains(Direction.UP) && directions.Contains(Direction.DOWN)) { textureRotation = (float)Math.PI; roomType = RoomType.DOWN_LEFT_UP; }
+                    else if (directions.Contains(Direction.UP) && directions.Contains(Direction.RIGHT) && directions.Contains(Direction.LEFT)) { textureRotation = -(float)Math.PI / 2; roomType = RoomType.LEFT_UP_RIGHT; }
+                }
+                else if (directions.Count == 4) { textureRotation = 0f; roomType = RoomType.ALL; }
             }
 
             public void AddDirection(Direction direction)
             {
                 directions.Add(direction);
+                ResetType();
             }
 
-            public void Draw(SpriteBatch spriteBatch)
+            public void Draw(SpriteBatch spriteBatch, int tileSize)
             {
-                spriteBatch.Draw(texture, new Rectangle(((int)position.X * 40) +20, ((int)position.Y * 40) +20, 40, 40), null, Color.White, textureRotation, new Vector2(texture.Width/2,texture.Height/2), SpriteEffects.None, 1.0f); 
+                spriteBatch.Draw(texture, new Rectangle(((int)position.X * tileSize) + tileSize/2, ((int)position.Y * tileSize) + tileSize/2, tileSize, tileSize), null, Color.White, textureRotation, new Vector2(texture.Width/2,texture.Height/2), SpriteEffects.None, 1.0f); 
             }
         }
     }        

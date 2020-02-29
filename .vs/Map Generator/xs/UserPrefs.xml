@@ -1,11 +1,16 @@
 ﻿<Properties StartupConfiguration="{248639F0-2E48-465A-AD11-6D45CCF5DEBE}|Default">
   <MonoDevelop.Ide.ItemProperties.Map_220Generator PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.Workbench ActiveDocument="GridGenerator.cs">
+    <Files>
+      <File FileName="GridGenerator.cs" Line="451" Column="1" />
+    </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State name="__root__">
-          <Node name="Map Generator" expanded="True" selected="True">
-            <Node name="Map Generator" expanded="True" />
+          <Node name="Map Generator" expanded="True">
+            <Node name="Map Generator" expanded="True">
+              <Node name="GridGenerator.cs" selected="True" />
+            </Node>
           </Node>
         </State>
       </Pad>
