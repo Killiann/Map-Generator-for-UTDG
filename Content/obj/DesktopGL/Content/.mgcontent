@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Profile>Reach</Profile>
+  <Platform>DesktopGL</Platform>
+  <Config />
+  <SourceFiles>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/rooms/room_1open.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/rooms/room_2open.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/rooms/room_2openv2.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/rooms/room_3open.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/rooms/room_4open.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/tiles/gun.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/tiles/health.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/tiles/itemDisplayBG.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/tiles/speed.png</File>
+    <File>/Users/killian/Documents/Monogame/Map-Generator-for-UTDG/Content/tiles/Sword.png</File>
+  </SourceFiles>
+  <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+  </DestFiles>
+</SourceFileCollection>
