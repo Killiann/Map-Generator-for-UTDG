@@ -10,7 +10,7 @@ namespace Map_Generator
 {
     public class GridGenerator
     {
-        private readonly int tileSize = 60;
+        private readonly int tileSize = 40;
         private readonly int bossTileCount = 3;
         private readonly int itemTileCount = 2;
         private readonly int mapWidth = 5;
@@ -110,86 +110,119 @@ namespace Map_Generator
                 rooms.Add(new Room(pathValues[i + 1], GetOpposite(direction1)));
             }
 
+
+            List<Vector2> emptyRooms = new List<Vector2>();
+            for (int x = 0; x < pathPlaces.GetLength(0); x++)
+            {
+                for (int y = 0; y < pathPlaces.GetLength(1); y++)
+                {
+                    if (pathPlaces[x, y] == 0)
+                        emptyRooms.Add(new Vector2(x, y));
+                }
+            }
+
             //link up remaining rooms
             while (rooms.Count < (mapWidth * mapHeight))
             {
-                int roomCount = rooms.Count;
-                for (int i = 0; i < roomCount; i++)
+                for (int i = 0; i < emptyRooms.Count; i++)
                 {
-                    Room room = rooms[i];
+                    Vector2 roomPos = emptyRooms[i];
                     List<Room.Direction> availableDirections = new List<Room.Direction>();
-
-                    if (room.position.X > 0 && room.position.Y > 0 && room.position.X < mapWidth - 1 && room.position.Y < mapHeight - 1)
+                    if (roomPos.X > 0 && roomPos.Y > 0 && roomPos.X < mapWidth - 1 && roomPos.Y < mapHeight - 1)
                     {
-                        if (pathPlaces[(int)room.position.X - 1, (int)room.position.Y] == 0)
+                        if (pathPlaces[(int)roomPos.X - 1, (int)roomPos.Y] == 1)
                             availableDirections.Add(Room.Direction.LEFT);
-                        if (pathPlaces[(int)room.position.X + 1, (int)room.position.Y] == 0)
+                        if (pathPlaces[(int)roomPos.X + 1, (int)roomPos.Y] == 1)
                             availableDirections.Add(Room.Direction.RIGHT);
-                        if (pathPlaces[(int)room.position.X, (int)room.position.Y - 1] == 0)
+                        if (pathPlaces[(int)roomPos.X, (int)roomPos.Y - 1] == 1)
                             availableDirections.Add(Room.Direction.UP);
-                        if (pathPlaces[(int)room.position.X, (int)room.position.Y + 1] == 0)
+                        if (pathPlaces[(int)roomPos.X, (int)roomPos.Y + 1] == 1)
                             availableDirections.Add(Room.Direction.DOWN);
                     }
                     else
                     {
-                        if (room.position.X == 0)
+                        //if (room.position != GetCorner(startTile) && room.position != GetCorner(endTile))
+                        //{
+                        if (roomPos.X == 0)
                         {
-                            if (pathPlaces[(int)room.position.X + 1, (int)room.position.Y] == 0)
+                            if (pathPlaces[(int)roomPos.X + 1, (int)roomPos.Y] == 1)
                                 availableDirections.Add(Room.Direction.RIGHT);
-                            if (room.position.Y == 0)
+                            if (roomPos.Y == 0)
                             {
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y + 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y + 1] == 1)
                                     availableDirections.Add(Room.Direction.DOWN);
                             }
-                            else if (room.position.Y == mapHeight - 1)
+                            else if (roomPos.Y == mapHeight - 1)
                             {
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y - 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y - 1] == 1)
                                     availableDirections.Add(Room.Direction.UP);
                             }
                             else
                             {
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y - 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y - 1] == 1)
                                     availableDirections.Add(Room.Direction.UP);
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y + 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y + 1] == 1)
                                     availableDirections.Add(Room.Direction.DOWN);
                             }
                         }
-                        else if (room.position.X == mapWidth - 1)
+                        else if (roomPos.X == mapWidth - 1)
                         {
-                            if (pathPlaces[(int)room.position.X - 1, (int)room.position.Y] == 0)
+                            if (pathPlaces[(int)roomPos.X - 1, (int)roomPos.Y] == 1)
                                 availableDirections.Add(Room.Direction.LEFT);
-                            if (room.position.Y == 0)
+                            if (roomPos.Y == 0)
                             {
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y + 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y + 1] == 1)
                                     availableDirections.Add(Room.Direction.DOWN);
                             }
-                            else if (room.position.Y == mapHeight - 1)
+                            else if (roomPos.Y == mapHeight - 1)
                             {
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y - 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y - 1] == 1)
                                     availableDirections.Add(Room.Direction.UP);
                             }
                             else
                             {
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y - 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y - 1] == 1)
                                     availableDirections.Add(Room.Direction.UP);
-                                if (pathPlaces[(int)room.position.X, (int)room.position.Y + 1] == 0)
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y + 1] == 1)
                                     availableDirections.Add(Room.Direction.DOWN);
+                            }
+                            //}
+                        }
+                        else
+                        {
+                            if(roomPos.Y == 0)
+                            {
+                                if (pathPlaces[(int)roomPos.X + 1, (int)roomPos.Y] == 1)
+                                    availableDirections.Add(Room.Direction.RIGHT);
+                                if (pathPlaces[(int)roomPos.X - 1, (int)roomPos.Y] == 1)
+                                    availableDirections.Add(Room.Direction.LEFT);
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y + 1] == 1)
+                                    availableDirections.Add(Room.Direction.DOWN);
+                            }
+                            else if(roomPos.Y == mapHeight- 1)
+                            {
+                                if (pathPlaces[(int)roomPos.X + 1, (int)roomPos.Y] == 1)
+                                    availableDirections.Add(Room.Direction.RIGHT);
+                                if (pathPlaces[(int)roomPos.X - 1, (int)roomPos.Y] == 1)
+                                    availableDirections.Add(Room.Direction.LEFT);
+                                if (pathPlaces[(int)roomPos.X, (int)roomPos.Y - 1] == 1)
+                                    availableDirections.Add(Room.Direction.UP);
                             }
                         }
                     }
-
                     if (availableDirections.Count > 0)
                     {
                         Room.Direction direction = availableDirections[rnd.Next(availableDirections.Count)];
-                        Vector2 newPosition = room.position;
-                        if (direction == Room.Direction.DOWN) newPosition.Y += 1;
-                        else if (direction == Room.Direction.UP) newPosition.Y -= 1;
-                        else if (direction == Room.Direction.RIGHT) newPosition.X += 1;
-                        else if (direction == Room.Direction.LEFT) newPosition.X -= 1;
+                        Vector2 nextRoomPos = roomPos;
+                        if (direction == Room.Direction.DOWN) nextRoomPos.Y += 1;
+                        else if (direction == Room.Direction.UP) nextRoomPos.Y -= 1;
+                        else if (direction == Room.Direction.RIGHT) nextRoomPos.X += 1;
+                        else if (direction == Room.Direction.LEFT) nextRoomPos.X -= 1;
 
-                        room.AddDirection(direction);
-                        rooms.Add(new Room(newPosition, GetOpposite(direction)));
-                        pathPlaces[(int)newPosition.X, (int)newPosition.Y] = 1;
+                        rooms.Where(x => x.position == nextRoomPos).First().AddDirection(GetOpposite(direction));
+                        rooms.Add(new Room(roomPos, direction));
+                        pathPlaces[(int)roomPos.X, (int)roomPos.Y] = 1;
+                        emptyRooms.Remove(roomPos);
                     }
                 }
             }
